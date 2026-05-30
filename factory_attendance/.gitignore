@@ -47,3 +47,6 @@ app.*.map.json
 # AI Agent files
 .agent/
 .dart_skills/
+
+#API Key GMAPS
+.env

@@ -8,13 +8,14 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
   @override
   Future<void> checkIn({
-    required String userId, 
-    required double distance, 
-    required String status, 
-    required double latitude, 
-    required double longitude
+    required String userId,
+    required double distance,
+    required String status,
+    required double latitude,
+    required double longitude,
+    String? selfieUrl,
   }) async {
-    await _firestore.collection('attendance_logs').add({
+    final payload = {
       'userId': userId,
       'timestamp': FieldValue.serverTimestamp(),
       'type': 'check_in',
@@ -22,18 +23,25 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       'status': status,
       'latitude': latitude,
       'longitude': longitude,
-    });
+    };
+
+    if (selfieUrl != null && selfieUrl.trim().isNotEmpty) {
+      payload['selfieUrl'] = selfieUrl;
+    }
+
+    await _firestore.collection('attendance_logs').add(payload);
   }
 
   @override
   Future<void> checkOut({
-    required String userId, 
-    required double distance, 
-    required String status, 
-    required double latitude, 
-    required double longitude
+    required String userId,
+    required double distance,
+    required String status,
+    required double latitude,
+    required double longitude,
+    String? selfieUrl,
   }) async {
-    await _firestore.collection('attendance_logs').add({
+    final payload = {
       'userId': userId,
       'timestamp': FieldValue.serverTimestamp(),
       'type': 'check_out',
@@ -41,7 +49,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       'status': status,
       'latitude': latitude,
       'longitude': longitude,
-    });
+    };
+
+    if (selfieUrl != null && selfieUrl.trim().isNotEmpty) {
+      payload['selfieUrl'] = selfieUrl;
+    }
+
+    await _firestore.collection('attendance_logs').add(payload);
   }
 
   @override
@@ -51,14 +65,14 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         .collection('attendance_logs')
         .where('userId', isEqualTo: userId)
         .get();
-        
+
     final logs = querySnapshot.docs
         .map((doc) => AttendanceModel.fromFirestore(doc))
         .toList();
-        
+
     // Lakukan pengurutan dari yang terbaru ke terlama secara lokal
     logs.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    
+
     return logs;
   }
 }

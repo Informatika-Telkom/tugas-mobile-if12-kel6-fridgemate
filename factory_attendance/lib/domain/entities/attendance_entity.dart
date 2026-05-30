@@ -5,6 +5,9 @@ class AttendanceEntity {
   final String type;
   final String status;
   final double distance;
+  final double? latitude;
+  final double? longitude;
+  final String? selfieUrl;
 
   AttendanceEntity({
     required this.id,
@@ -13,5 +16,8 @@ class AttendanceEntity {
     required this.type,
     required this.status,
     required this.distance,
+    this.latitude,
+    this.longitude,
+    this.selfieUrl,
   });
 }

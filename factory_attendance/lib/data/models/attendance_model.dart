@@ -9,6 +9,9 @@ class AttendanceModel extends AttendanceEntity {
     required super.type,
     required super.status,
     required super.distance,
+    super.latitude,
+    super.longitude,
+    super.selfieUrl,
   });
 
   factory AttendanceModel.fromFirestore(DocumentSnapshot doc) {
@@ -16,7 +19,7 @@ class AttendanceModel extends AttendanceEntity {
     if (data == null) {
       throw Exception("Document data is null");
     }
-    
+
     // Handle pending server timestamp locally
     DateTime time;
     if (data['timestamp'] != null) {
@@ -32,6 +35,9 @@ class AttendanceModel extends AttendanceEntity {
       type: data['type'] ?? '',
       status: data['status'] ?? '',
       distance: (data['distance'] ?? 0).toDouble(),
+      latitude: (data['latitude'] as num?)?.toDouble(),
+      longitude: (data['longitude'] as num?)?.toDouble(),
+      selfieUrl: data['selfieUrl'] as String?,
     );
   }
 }

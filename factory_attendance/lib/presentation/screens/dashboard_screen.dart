@@ -9,6 +9,7 @@ import '../providers/auth_provider.dart';
 import '../providers/attendance_provider.dart';
 import 'login_screen.dart';
 import 'history_screen.dart';
+import 'profile_screen.dart';
 import 'camera_screen.dart' as camera_screen;
 
 class DashboardScreen extends StatefulWidget {
@@ -27,8 +28,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _timeString = _formatDateTime(DateTime.now());
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime());
-    
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (Timer t) => _getTime(),
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final attendanceProvider = context.read<AttendanceProvider>();
       final user = FirebaseAuth.instance.currentUser;
@@ -62,7 +66,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _handleLogout(BuildContext context) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.signOut();
-    
+
     if (!context.mounted) return;
     Navigator.pushReplacement(
       context,
@@ -74,9 +78,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final attendanceProvider = context.read<AttendanceProvider>();
     final user = FirebaseAuth.instance.currentUser;
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    
+
     if (user == null) return;
-    
+
     try {
       if (type == 'check_in') {
         // TODO: Uncomment ini nanti jika sudah selesai testing kamera
@@ -86,14 +90,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         //   );
         //   return;
         // }
-        
+
         final result = await Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const camera_screen.CameraScreen()),
         );
-        
-        if (result == true) {
-          await attendanceProvider.checkIn(user.uid);
+
+        if (result is camera_screen.SelfieCaptureResult && result.success) {
+          await attendanceProvider.checkIn(
+            user.uid,
+            selfiePath: result.filePath,
+          );
         } else {
           return; // Cancelled or failed
         }
@@ -123,9 +130,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Dashboard - ${authProvider.userRole}', style: const TextStyle(color: AppColors.white)),
+        title: Text(
+          'Dashboard - ${authProvider.userRole}',
+          style: const TextStyle(color: AppColors.white),
+        ),
         backgroundColor: AppColors.deepNavy,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.badge, color: AppColors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.history, color: AppColors.white),
             onPressed: () {
@@ -180,7 +199,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   top: 16,
                   left: 16,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.deepNavy.withOpacity(0.8),
                       borderRadius: BorderRadius.circular(8),
@@ -198,7 +220,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-          
+
           // Bagian Tengah & Bawah: Status, Action & Stats
           Expanded(
             flex: 3,
@@ -212,7 +234,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     color: Colors.black12,
                     blurRadius: 10,
                     offset: Offset(0, -5),
-                  )
+                  ),
                 ],
               ),
               child: Column(
@@ -224,7 +246,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const CircleAvatar(
                         radius: 24,
                         backgroundColor: AppColors.deepNavy,
-                        child: Icon(Icons.person, size: 30, color: AppColors.white),
+                        child: Icon(
+                          Icons.person,
+                          size: 30,
+                          color: AppColors.white,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -233,45 +259,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           children: [
                             Text(
                               user?.email ?? 'Unknown',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             Text(
                               authProvider.userRole.toUpperCase(),
-                              style: const TextStyle(color: AppColors.safetyOrange, fontSize: 12, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                color: AppColors.safetyOrange,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: attendanceProvider.isInArea ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                          color: attendanceProvider.isInArea
+                              ? Colors.green.withOpacity(0.1)
+                              : Colors.red.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: attendanceProvider.isInArea ? Colors.green : Colors.red,
+                            color: attendanceProvider.isInArea
+                                ? Colors.green
+                                : Colors.red,
                           ),
                         ),
                         child: Text(
-                          attendanceProvider.isInArea ? "Status: In Area 🟢" : "Status: Outside Area 🔴",
+                          attendanceProvider.isInArea
+                              ? "Status: In Area 🟢"
+                              : "Status: Outside Area 🔴",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: attendanceProvider.isInArea ? Colors.green : Colors.red,
+                            color: attendanceProvider.isInArea
+                                ? Colors.green
+                                : Colors.red,
                           ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  
+
                   Text(
                     'Jarak saat ini: ${attendanceProvider.currentDistance.toStringAsFixed(1)} meter',
                     style: const TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                   const Spacer(),
-                  
+
                   // Action Buttons
                   if (attendanceProvider.isLoading)
-                    const Center(child: CircularProgressIndicator(color: AppColors.safetyOrange))
+                    const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.safetyOrange,
+                      ),
+                    )
                   else
                     Row(
                       children: [
@@ -303,7 +351,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ),
                   const Spacer(),
-                  
+
                   // Weekly Stats
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -319,11 +367,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           children: [
                             Text(
                               'Weekly Stats',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                             Text(
                               'Total Kehadiran (7 Hari Terakhir)',
-                              style: TextStyle(color: Colors.grey, fontSize: 12),
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
@@ -335,7 +389,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           child: Text(
                             '${attendanceProvider.weeklyAttendanceCount}',
-                            style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
                           ),
                         ),
                       ],

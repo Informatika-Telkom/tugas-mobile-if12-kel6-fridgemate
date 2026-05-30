@@ -9,6 +9,7 @@ import '../providers/auth_provider.dart';
 import '../providers/attendance_provider.dart';
 import 'login_screen.dart';
 import 'history_screen.dart';
+import 'camera_screen.dart' as camera_screen;
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -78,7 +79,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     
     try {
       if (type == 'check_in') {
-        await attendanceProvider.checkIn(user.uid);
+        // TODO: Uncomment ini nanti jika sudah selesai testing kamera
+        // if (!attendanceProvider.isInArea) {
+        //   scaffoldMessenger.showSnackBar(
+        //     const SnackBar(content: Text('Anda berada di luar area absensi!')),
+        //   );
+        //   return;
+        // }
+        
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const camera_screen.CameraScreen()),
+        );
+        
+        if (result == true) {
+          await attendanceProvider.checkIn(user.uid);
+        } else {
+          return; // Cancelled or failed
+        }
       } else {
         await attendanceProvider.checkOut(user.uid);
       }

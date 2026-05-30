@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "853133921442",
+    "project_id": "factory-attendance-kel-6",
+    "storage_bucket": "factory-attendance-kel-6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:853133921442:android:795c1b5355354c3931dbfb",
+        "android_client_info": {
+          "package_name": "com.example.factory_attendance"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYElweDlW_2jc21DEHI6R68x9CwfWLr40"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

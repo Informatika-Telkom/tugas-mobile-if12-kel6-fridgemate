@@ -1,8 +1,26 @@
 import 'package:flutter/material.dart';
-import 'core/themes/app_colors.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 
-void main() {
-  runApp(const FactoryAttendanceApp());
+import 'firebase_options.dart';
+import 'core/themes/app_colors.dart';
+import 'presentation/providers/auth_provider.dart';
+import 'presentation/screens/splash_screen.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: const FactoryAttendanceApp(),
+    ),
+  );
 }
 
 class FactoryAttendanceApp extends StatelessWidget {
@@ -16,11 +34,7 @@ class FactoryAttendanceApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.deepNavy),
         useMaterial3: true,
       ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('Factory Attendance HRIS'),
-        ),
-      ),
+      home: const SplashScreen(),
     );
   }
 }

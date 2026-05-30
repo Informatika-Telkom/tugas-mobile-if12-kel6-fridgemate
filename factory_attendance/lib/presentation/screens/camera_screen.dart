@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as img;
+import '../../core/services/notification_service.dart';
 import 'selfie_result_screen.dart';
 
 class SelfieCaptureResult {
@@ -99,6 +100,12 @@ class _CameraScreenState extends State<CameraScreen> {
       }
 
       final isSuccess = issues.isEmpty;
+
+      if (!isSuccess) {
+        await NotificationService.instance.showFaceDetectionFailure(
+          issues.isEmpty ? 'Wajah tidak terdeteksi dengan baik.' : issues.first,
+        );
+      }
 
       final usePhoto = await Navigator.push<bool>(
         context,

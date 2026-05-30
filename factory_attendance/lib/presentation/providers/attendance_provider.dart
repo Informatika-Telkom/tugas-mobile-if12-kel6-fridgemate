@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
+import '../../core/services/notification_service.dart';
 import '../../domain/repositories/attendance_repository.dart';
 import '../../domain/entities/attendance_entity.dart';
 
@@ -147,12 +148,18 @@ class AttendanceProvider extends ChangeNotifier {
     if (_currentPosition == null) {
       _isLoading = false;
       notifyListeners();
+      await NotificationService.instance.showGpsFailure(
+        'Gagal mendapatkan lokasi. Pastikan GPS/Location service menyala dan diberi izin.',
+      );
       throw 'Gagal mendapatkan lokasi. Pastikan GPS/Location service menyala dan diberi izin.';
     }
 
     if (!_isInArea) {
       _isLoading = false;
       notifyListeners();
+      await NotificationService.instance.showGpsFailure(
+        'Anda berada di luar jangkauan area pabrik. Absen diblokir.',
+      );
       throw 'Anda berada di luar jangkauan area pabrik (> $attendanceRadius meter). Absen diblokir.';
     }
 
@@ -171,6 +178,8 @@ class AttendanceProvider extends ChangeNotifier {
           longitude: _currentPosition!.longitude,
           selfieUrl: selfieUrl,
         );
+
+        await NotificationService.instance.showClockInSuccess();
       } else {
         await _repository.checkOut(
           userId: userId,

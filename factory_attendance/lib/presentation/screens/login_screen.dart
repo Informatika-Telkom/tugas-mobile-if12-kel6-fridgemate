@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/themes/app_colors.dart';
 import '../providers/auth_provider.dart';
 import 'dashboard_screen.dart';
+import 'admin_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -49,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       await authProvider.signIn(email, password);
-      
+
       final prefs = await SharedPreferences.getInstance();
       if (_rememberMe) {
         await prefs.setString('saved_email', email);
@@ -60,13 +61,17 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        MaterialPageRoute(
+          builder: (_) => authProvider.isAdmin
+              ? const AdminDashboardScreen()
+              : const DashboardScreen(),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -79,16 +84,16 @@ class _LoginScreenState extends State<LoginScreen> {
     if (emailToReset != null && emailToReset.isNotEmpty && mounted) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final scaffoldMessenger = ScaffoldMessenger.of(context);
-      
+
       try {
         await authProvider.resetPassword(emailToReset);
         scaffoldMessenger.showSnackBar(
-          const SnackBar(content: Text('Link reset password telah dikirim ke email Anda')),
+          const SnackBar(
+            content: Text('Link reset password telah dikirim ke email Anda'),
+          ),
         );
       } catch (e) {
-        scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        scaffoldMessenger.showSnackBar(SnackBar(content: Text(e.toString())));
       }
     }
   }
@@ -113,11 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 48),
-              const Icon(
-                Icons.factory,
-                size: 80,
-                color: AppColors.deepNavy,
-              ),
+              const Icon(Icons.factory, size: 80, color: AppColors.deepNavy),
               const SizedBox(height: 24),
               const Text(
                 'Welcome Back',
@@ -132,10 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const Text(
                 'Sign in to your factory dashboard',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
               const SizedBox(height: 48),
               TextFormField(
@@ -158,7 +156,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                     ),
                     onPressed: () {
                       setState(() {
@@ -274,7 +274,10 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
               Navigator.pop(context, email);
             }
           },
-          child: const Text('Kirim Link Reset', style: TextStyle(color: AppColors.safetyOrange)),
+          child: const Text(
+            'Kirim Link Reset',
+            style: TextStyle(color: AppColors.safetyOrange),
+          ),
         ),
       ],
     );

@@ -20,10 +20,13 @@ class AttendanceModel extends AttendanceEntity {
       throw Exception("Document data is null");
     }
 
-    // Handle pending server timestamp locally
     DateTime time;
-    if (data['timestamp'] != null) {
-      time = (data['timestamp'] as Timestamp).toDate();
+    final serverTs = data['timestamp'] as Timestamp?;
+    final clientTs = data['clientTimestamp'] as Timestamp?;
+    if (serverTs != null) {
+      time = serverTs.toDate();
+    } else if (clientTs != null) {
+      time = clientTs.toDate();
     } else {
       time = DateTime.now();
     }

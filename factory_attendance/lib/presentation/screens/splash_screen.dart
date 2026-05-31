@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+import 'package:provider/provider.dart';
 import '../../core/themes/app_colors.dart';
+import '../providers/auth_provider.dart';
 import 'login_screen.dart';
 import 'dashboard_screen.dart';
+import 'admin_dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,13 +24,19 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkAuth() async {
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
-    
+
     final user = FirebaseAuth.instance.currentUser;
-    
+
     if (user != null) {
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.loadUserRole();
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        MaterialPageRoute(
+          builder: (_) => authProvider.isAdmin
+              ? const AdminDashboardScreen()
+              : const DashboardScreen(),
+        ),
       );
     } else {
       Navigator.pushReplacement(
@@ -45,11 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.factory,
-              color: AppColors.white,
-              size: 100,
-            ),
+            Icon(Icons.factory, color: AppColors.white, size: 100),
             SizedBox(height: 24),
             Text(
               'Factory Attendance',

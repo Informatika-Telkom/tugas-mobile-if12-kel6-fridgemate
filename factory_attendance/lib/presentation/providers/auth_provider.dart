@@ -14,6 +14,28 @@ class AuthProvider extends ChangeNotifier {
   String _userRole = '';
   String get userRole => _userRole;
 
+  bool get isAdmin {
+    final role = _userRole.toLowerCase();
+    return role == 'admin' || role == 'hrd';
+  }
+
+  Future<String> loadUserRole() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      _userRole = '';
+      return _userRole;
+    }
+
+    final userDoc = await _firestore.collection('users').doc(user.uid).get();
+    if (userDoc.exists) {
+      _userRole = userDoc.data()?['role'] ?? 'employee';
+    } else {
+      _userRole = 'employee';
+    }
+    notifyListeners();
+    return _userRole;
+  }
+
   Future<void> resetPassword(String email) async {
     await _auth.sendPasswordResetEmail(email: email);
   }

@@ -42,6 +42,26 @@ class AttendanceProvider extends ChangeNotifier {
   List<AttendanceEntity> _history = [];
   List<AttendanceEntity> get history => _history;
 
+  String? _todayStatus;
+  String? get todayStatus => _todayStatus;
+
+  bool get isWithinWorkingHours {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day, 4, 0);
+    final end = DateTime(now.year, now.month, now.day, 17, 0);
+    return !now.isBefore(start) && !now.isAfter(end);
+  }
+
+  bool get canCheckIn {
+    if (!isWithinWorkingHours) return false;
+    return _todayStatus == null || _todayStatus == 'check_out';
+  }
+
+  bool get canCheckOut {
+    if (!isWithinWorkingHours) return false;
+    return _todayStatus == 'check_in';
+  }
+
   StreamSubscription<Position>? _positionStreamSubscription;
 
   Future<bool> _handleLocationPermission() async {
@@ -121,6 +141,7 @@ class AttendanceProvider extends ChangeNotifier {
 
     try {
       _history = await _repository.getAttendanceHistory(userId);
+      _updateTodayStatus();
     } catch (e) {
       debugPrint("Error fetching history: $e");
     } finally {
@@ -144,6 +165,12 @@ class AttendanceProvider extends ChangeNotifier {
   }) async {
     _isLoading = true;
     notifyListeners();
+
+    if (!isWithinWorkingHours) {
+      _isLoading = false;
+      notifyListeners();
+      throw 'Absen hanya bisa dilakukan pada jam kerja (04:00 - 17:00).';
+    }
 
     if (_currentPosition == null) {
       _isLoading = false;
@@ -180,6 +207,7 @@ class AttendanceProvider extends ChangeNotifier {
         );
 
         await NotificationService.instance.showClockInSuccess();
+        _todayStatus = 'check_in';
       } else {
         await _repository.checkOut(
           userId: userId,
@@ -189,6 +217,7 @@ class AttendanceProvider extends ChangeNotifier {
           longitude: _currentPosition!.longitude,
           selfieUrl: selfieUrl,
         );
+        _todayStatus = 'check_out';
       }
 
       // Update history and stats after successful check-in/out
@@ -213,5 +242,26 @@ class AttendanceProvider extends ChangeNotifier {
     final file = File(selfiePath);
     final snapshot = await ref.putFile(file);
     return snapshot.ref.getDownloadURL();
+  }
+
+  void _updateTodayStatus() {
+    final now = DateTime.now();
+    AttendanceEntity? latest;
+    for (final log in _history) {
+      if (!_isSameDay(log.timestamp, now)) continue;
+      if (latest == null || log.timestamp.isAfter(latest.timestamp)) {
+        latest = log;
+      } else if (latest != null &&
+          log.timestamp.isAtSameMomentAs(latest.timestamp)) {
+        if (latest.type == 'check_in' && log.type == 'check_out') {
+          latest = log;
+        }
+      }
+    }
+    _todayStatus = latest?.type;
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import '../../domain/repositories/attendance_repository.dart';
 import '../../domain/entities/attendance_entity.dart';
 import '../models/attendance_model.dart';
@@ -15,14 +16,17 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     required double longitude,
     String? selfieUrl,
   }) async {
+    final dateKey = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final payload = {
       'userId': userId,
       'timestamp': FieldValue.serverTimestamp(),
+      'clientTimestamp': Timestamp.now(),
       'type': 'check_in',
       'distance': distance,
       'status': status,
       'latitude': latitude,
       'longitude': longitude,
+      'dateKey': dateKey,
     };
 
     if (selfieUrl != null && selfieUrl.trim().isNotEmpty) {
@@ -41,14 +45,17 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     required double longitude,
     String? selfieUrl,
   }) async {
+    final dateKey = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final payload = {
       'userId': userId,
       'timestamp': FieldValue.serverTimestamp(),
+      'clientTimestamp': Timestamp.now(),
       'type': 'check_out',
       'distance': distance,
       'status': status,
       'latitude': latitude,
       'longitude': longitude,
+      'dateKey': dateKey,
     };
 
     if (selfieUrl != null && selfieUrl.trim().isNotEmpty) {

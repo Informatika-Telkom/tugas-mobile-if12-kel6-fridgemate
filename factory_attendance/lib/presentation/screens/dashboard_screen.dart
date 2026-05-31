@@ -39,6 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       attendanceProvider.startLocationStream();
       if (user != null) {
         attendanceProvider.calculateWeeklyStats(user.uid);
+        attendanceProvider.fetchHistory(user.uid);
       }
     });
   }
@@ -325,7 +326,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: () => _handleAttendance('check_in'),
+                            onPressed: attendanceProvider.canCheckIn
+                                ? () => _handleAttendance('check_in')
+                                : null,
                             icon: const Icon(Icons.login),
                             label: const Text('CHECK-IN'),
                             style: ElevatedButton.styleFrom(
@@ -338,7 +341,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: () => _handleAttendance('check_out'),
+                            onPressed: attendanceProvider.canCheckOut
+                                ? () => _handleAttendance('check_out')
+                                : null,
                             icon: const Icon(Icons.logout),
                             label: const Text('CHECK-OUT'),
                             style: ElevatedButton.styleFrom(

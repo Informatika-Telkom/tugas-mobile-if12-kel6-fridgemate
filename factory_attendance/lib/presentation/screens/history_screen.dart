@@ -6,6 +6,7 @@ import '../../core/themes/app_colors.dart';
 import '../../domain/entities/attendance_entity.dart';
 import 'attendance_detail_screen.dart';
 import '../providers/attendance_provider.dart';
+import '../widgets/attendance_card_skeleton.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -51,8 +52,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
         iconTheme: const IconThemeData(color: AppColors.white),
       ),
       body: attendanceProvider.isLoading && attendanceProvider.history.isEmpty
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.safetyOrange),
+          ? ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 5,
+              itemBuilder: (context, index) => const AttendanceCardSkeleton(),
             )
           : attendanceProvider.history.isEmpty
           ? const Center(child: Text("Belum ada riwayat absensi"))

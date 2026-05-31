@@ -8,6 +8,8 @@ import '../../core/themes/app_colors.dart';
 import '../providers/auth_provider.dart';
 import '../providers/attendance_provider.dart';
 import 'login_screen.dart';
+import '../../data/models/attendance_model.dart';
+import '../widgets/export_csv_button.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -95,6 +97,20 @@ class _OverviewTab extends StatelessWidget {
             }
 
             final attendanceLogs = attendanceSnapshot.data?.docs ?? [];
+
+            // --- Konversi QueryDocumentSnapshot ke AttendanceModel untuk Export CSV ---
+            // Kita manfaatkan QuerySnapshot yang sudah ada agar tidak perlu request baru.
+            final attendanceModels = attendanceLogs
+                .map((doc) {
+                  try {
+                    return AttendanceModel.fromFirestore(doc);
+                  } catch (_) {
+                    return null;
+                  }
+                })
+                .whereType<AttendanceModel>()
+                .toList();
+
             final attendanceByUser = <String, DateTime>{};
             for (final log in attendanceLogs) {
               final data = log.data();
@@ -121,6 +137,13 @@ class _OverviewTab extends StatelessWidget {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                // --- Tombol Export CSV ---
+                // Muncul di pojok kanan atas list sebagai aksi admin.
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: ExportCsvButton(attendances: attendanceModels),
+                ),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(

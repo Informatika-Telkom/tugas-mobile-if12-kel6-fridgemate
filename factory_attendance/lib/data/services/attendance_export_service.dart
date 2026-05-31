@@ -1,63 +1,56 @@
 import 'dart:io';
-import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:intl/intl.dart';
 import '../models/attendance_model.dart';
 
 class AttendanceExportService {
-  /// Mengambil data list AttendanceModel, mengonversinya menjadi CSV, dan menyimpan ke penyimpanan lokal.
-  Future<String?> exportToCSV(List<AttendanceModel> attendances) async {
+  Future<String?> exportToCsv(List<AttendanceModel> attendances) async {
     try {
-      // 1. Persiapkan Header CSV
-      // Menyesuaikan dengan data yang ada di AttendanceModel
-      List<List<dynamic>> rows = [
-        ['ID', 'User ID (NIK)', 'Tanggal & Waktu', 'Tipe', 'Status', 'Jarak (m)', 'Latitude', 'Longitude'],
-      ];
+      // 1. Buat StringBuffer untuk menyusun teks CSV
+      StringBuffer csvBuilder = StringBuffer();
 
-      // 2. Map data absensi ke dalam baris CSV
-      for (var attendance in attendances) {
-        List<dynamic> row = [
-          attendance.id,
-          attendance.userId,
-          DateFormat('yyyy-MM-dd HH:mm:ss').format(attendance.timestamp),
-          attendance.type,
-          attendance.status,
-          attendance.distance.toStringAsFixed(2),
-          attendance.latitude ?? '-',
-          attendance.longitude ?? '-',
-        ];
-        rows.add(row);
+      // 2. Tambahkan Header Kolom
+      csvBuilder.writeln(
+        'ID,User ID,Waktu,Tipe,Status,Jarak (m),Latitude,Longitude',
+      );
+
+      // 3. Iterasi data absensi dan susun menjadi baris teks dipisahkan koma
+      for (var auth in attendances) {
+        String id = auth.id;
+        String userId = auth.userId;
+        String time = auth.timestamp.toString();
+        String type = auth.type;
+        String status = auth.status;
+        String distance = auth.distance.toString();
+        String lat = auth.latitude?.toString() ?? '';
+        String lng = auth.longitude?.toString() ?? '';
+
+        // Gabungkan dalam satu baris, gunakan tanda kutip jika teks mengandung koma
+        csvBuilder.writeln(
+          '"$id","$userId","$time","$type","$status","$distance","$lat","$lng"',
+        );
       }
 
-      // 3. Konversi Array 2D menjadi format string CSV
-      String csvData = const ListToCsvConverter().convert(rows);
-
-      // 4. Tentukan lokasi penyimpanan lokal berdasarkan platform
+      // 4. Cari lokasi folder penyimpanan lokal (Documents/Downloads)
       Directory? directory;
       if (Platform.isAndroid) {
-        // Untuk Android, menggunakan folder penyimpanan eksternal (Documents/Download)
-        directory = await getExternalStorageDirectory();
-        
-        // Alternatif jika ingin memaksa ke folder Download publik (membutuhkan permission storage):
-        // directory = Directory('/storage/emulated/0/Download');
-      } else if (Platform.isIOS) {
+        directory = Directory('/storage/emulated/0/Download');
+      } else {
         directory = await getApplicationDocumentsDirectory();
       }
 
-      if (directory != null) {
-        // Buat nama file unik berdasarkan timestamp
-        final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-        final String filePath = '${directory.path}/Attendance_Export_$timestamp.csv';
-        
-        // 5. Simpan string CSV ke dalam file lokal
-        final File file = File(filePath);
-        await file.writeAsString(csvData);
+      if (directory == null) return null;
 
-        return filePath; // Mengembalikan path file jika berhasil
-      }
-      return null;
+      // 5. Buat nama file unik berdasarkan epoch timestamp
+      String epoch = DateTime.now().millisecondsSinceEpoch.toString();
+      String filePath = "${directory.path}/rekap_absen_$epoch.csv";
+
+      // 6. Tulis string ke dalam bentuk file fisik .csv
+      File file = File(filePath);
+      await file.writeAsString(csvBuilder.toString());
+
+      return filePath; // Kembalikan jalur file untuk SnackBar UI
     } catch (e) {
-      print('Error exporting CSV: $e');
+      print("Error Manual Export CSV: $e");
       return null;
     }
   }

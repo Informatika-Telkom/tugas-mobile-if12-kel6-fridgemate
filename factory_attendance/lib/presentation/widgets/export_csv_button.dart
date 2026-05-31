@@ -5,10 +5,8 @@ import '../../data/services/attendance_export_service.dart';
 class ExportCsvButton extends StatelessWidget {
   final List<AttendanceModel> attendances;
 
-  const ExportCsvButton({
-    Key? key,
-    required this.attendances,
-  }) : super(key: key);
+  const ExportCsvButton({Key? key, required this.attendances})
+    : super(key: key);
 
   void _handleExport(BuildContext context) async {
     // 1. Tampilkan feedback awal kepada user bahwa proses sedang berjalan
@@ -21,7 +19,7 @@ class ExportCsvButton extends StatelessWidget {
 
     // 2. Panggil helper service yang telah kita buat
     final service = AttendanceExportService();
-    final String? filePath = await service.exportToCSV(attendances);
+    final String? filePath = await service.exportToCsv(attendances);
 
     // 3. Pastikan widget masih ada di tree sebelum menampilkan hasil
     if (!context.mounted) return;
@@ -58,20 +56,17 @@ class ExportCsvButton extends StatelessWidget {
       icon: const Icon(Icons.download_rounded, color: Colors.white),
       label: const Text(
         'Export CSV',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFFFF6B35), // Safety Orange
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         elevation: 4,
-        shadowColor: const Color(0xFF0B1D3A).withOpacity(0.5), // Efek bayangan Deep Navy
+        shadowColor: const Color(
+          0xFF0B1D3A,
+        ).withOpacity(0.5), // Efek bayangan Deep Navy
       ),
     );
   }

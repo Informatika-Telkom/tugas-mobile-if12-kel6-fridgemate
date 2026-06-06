@@ -21,24 +21,24 @@ Aplikasi ini menerapkan Clean Architecture yang membagi kode ke dalam 4 layer ut
 
 ```mermaid
 graph TD
-    subgraph Presentation Layer
-        UI[Flutter UI / Widgets]
-        State[Provider / State Management]
+    subgraph PresentationLayer ["Presentation Layer"]
+        UI["Flutter UI / Widgets"]
+        State["Provider / State Management"]
     end
 
-    subgraph Domain Layer
-        Usecase[Use Cases]
-        Entity[Entities]
-        RepoInterface[Repository Interfaces]
+    subgraph DomainLayer ["Domain Layer"]
+        Usecase["Use Cases"]
+        Entity["Entities"]
+        RepoInterface["Repository Interfaces"]
     end
 
-    subgraph Data Layer
-        RepoImpl[Repository Implementation]
-        Model[Models]
-        subgraph Remote Data Source
-            FBAuth[Firebase Auth]
-            Firestore[Cloud Firestore]
-            FBStorage[Firebase Storage]
+    subgraph DataLayer ["Data Layer"]
+        RepoImpl["Repository Implementation"]
+        Model["Models"]
+        subgraph RemoteDataSource ["Remote Data Source"]
+            FBAuth["Firebase Auth"]
+            Firestore["Cloud Firestore"]
+            FBStorage["Firebase Storage"]
         end
     end
 
@@ -48,7 +48,7 @@ graph TD
     Usecase -->|Uses| Entity
     RepoImpl -.->|Implements| RepoInterface
     RepoImpl -->|Maps to/from| Model
-    RepoImpl -->|Interacts with| Remote Data Source
+    RepoImpl -->|Interacts with| RemoteDataSource
 ```
 
 ## 2. Entity-Relationship (ER) Diagram / Data Modeling
